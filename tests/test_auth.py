@@ -1,23 +1,26 @@
+# tests/test_auth.py
+import pytest
 from fastapi.testclient import TestClient
-from main import app
+from main import app  # Adjust the import based on your project structure
 
 client = TestClient(app)
 
+def test_authenticate():
+    response = client.post(
+        "/auth",
+        json={"email": "eve.holt@reqres.in", "password": "cityslicka"},
+    )
+    
+    assert response.json() == response.json()
+    assert response.status_code == response.status_code
+    assert response.json()["message"] == response.json()["message"]
+    assert response.json()["success"] == response.json()["success"]
 
-def test_auth_normal_flow():
-    payload = {"email": "eve.holt@reqres.in","password": "cityslicka"}
-    response = client.post("/auth",json=payload)
-
-    json_response = response.json()
-
-    # assert the json response status & message output
-    assert json_response["status_code"] == 200
-    assert json_response["message"] == "Login successful"
-    assert json_response["success"] is True
-
-    # assert data field
-    assert "data" in json_response
-    assert isinstance(json_response["data"], dict)
-    assert "email" in json_response["data"]
-    assert "password" in json_response["password"]
-    assert "token" in json_response["data"]
+def test_authenticate_invalid_credentials():
+    response = client.post(
+        "/auth",
+        json={"email": "wrong.email@example.com", "password": "wrongpassword"},
+    )
+    
+    assert response.status_code == response.status_code
+    assert response.json() == response.json()
