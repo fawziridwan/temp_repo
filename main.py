@@ -1,7 +1,13 @@
 from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel
 import httpx
+import os
+
+from dotenv import load_dotenv, set_key
 from cryptography.fernet import Fernet
+
+# load env
+load_dotenv()
 
 # Generate a key for encryption and decryption
 # In a real application, you should store this key securely
@@ -10,7 +16,7 @@ cipher_suite = Fernet(key)
 
 app = FastAPI()
 
-BASE_URL = "https://reqres.in"
+BASE_URL = os.getenv("BASE_URL")
 
 
 class LoginRequest(BaseModel):
@@ -28,11 +34,28 @@ async def login(request: LoginRequest):
             # Encrypt the password
             encrypted_password = cipher_suite.encrypt(request.password.encode())
 
+            # Extract data
+            email = request.email
+            password = encrypted_password.decode()
+            token = response.json()["token"]
+
+            # Set environment variables
+            os.environ["EMAIL"] = email
+            os.environ["PASSWORD"] = password
+            os.environ["TOKEN"] = token
+            
+            # Write to .env file
+            set_key(".env", "EMAIL", email)
+            set_key(".env", "PASSWORD", password)
+            set_key(".env", "TOKEN", token)
+            
             data = {
-                "email": request.email,
-                "password": encrypted_password.decode(),
-                "token": response.json()["token"],
+                "email": email,
+                "password": password,
+                "token": token,
             }
+            
+                        
             return {
                 "data": data,
                 "status_code": response.status_code,
