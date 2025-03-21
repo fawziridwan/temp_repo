@@ -3,3 +3,5 @@ __pycache
 .pytest_cache
 .vscode
 env/
+tests/__pycache__/
+__pycache__/
