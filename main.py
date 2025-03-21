@@ -23,7 +23,7 @@ class LoginRequest(BaseModel):
 async def login(request: LoginRequest):
     payload = request.model_dump()
     async with httpx.AsyncClient() as client:
-        response = await client.post(BASE_URL + "/api/login", json=payload)
+        response = await client.post(BASE_URL + "/api/login", json=payload)        
         if response.status_code == 200:
             # Encrypt the password
             encrypted_password = cipher_suite.encrypt(request.password.encode())
@@ -39,6 +39,37 @@ async def login(request: LoginRequest):
                 "message": "Login successful",
                 "success": True,
             }
+ 
+        elif response.status_code == 400 and "error" in response.json():
+            error_message = response.json()["error"]
+            if error_message == "user not found":
+                return {
+                    "data": {},
+                    "status_code": response.status_code,
+                    "message": "User not found" if error_message == "user not found" else error_message,
+                    "success": False,
+                }
+            
+        elif request.email != "" and "error" in response.json():
+            error_message = response.json()["error"]
+            if error_message == "Missing email or username":
+                return {
+                    "data": {},
+                    "status_code": response.status_code,
+                    "message": "Email is required" if error_message == "Missing email or username" else error_message,
+                    "success": False,
+                }
+                
+        elif request.password == "" and "error" in response.json():
+            error_message = response.json()["error"]
+            if error_message == "Missing password":
+                return {
+                    "data": {},
+                    "status_code": response.status_code,
+                    "message": "Password is required" if error_message == "Missing password" else error_message,
+                    "success": False,
+                }
+                
         else:
             return {
                 "data": {},
